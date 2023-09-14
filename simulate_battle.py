@@ -92,6 +92,11 @@ def find_avail_skills_and_use(skill_list):
         avail_skills.append(None)
     return avail_skills
     
+def summon(summoner_status, minion_status):
+    if "minions" not in summoner_status:
+        summoner_status["minions"] = []
+    summoner_status["minions"].append(minion_status)
+    
 def get_full_buff(buff): # [buff value, duration, frame, condition, buff turn]
     if not isinstance(buff, list):
         buff = [buff]
@@ -164,6 +169,12 @@ def add_buff(status, buff_type, new_buff, turn_num=None):
             raise Exception('turn_num must not be None')
         new_buff[4] = turn_num
     status[buff_type].append(new_buff)
+    
+def add_buff_including_minions(status, buff_type, new_buff, turn_num=None):
+    add_buff(status, buff_type, new_buff, turn_num)
+    if "minions" in status:
+        for minion in status["minions"]:
+            add_buff(minion, buff_type, new_buff, turn_num)
     
 def remove_buff(status):
     for key in status:
@@ -412,3 +423,38 @@ def sum_dmg(action_list):
     for action in action_list:
         s += action[2]
     return s
+    
+def log_skill_set(skill_set):
+    print "Skill set: ",
+    print [skill['id'] for skill in skill_set if 'id' in skill]
+
+def log_action_list(action_list, player_turn_only=True):
+    print "Actions:"
+    i = 0
+    while i < len(action_list):
+        j = i
+        print "  Turn %d:" % action_list[i][0]
+        while j < len(action_list) and action_list[j][0] == action_list[i][0]:
+            print "    Action: %s" % (("skill id %d" % action_list[j][1]) if action_list[j][1] != None else "normal attack")
+            if len(action_list[j]) > 4 and action_list[j][4] > 0:
+                if (action_list[j][2] - action_list[j][4]) > 0:
+                    print "    Damage: %f" % (action_list[j][2] - action_list[j][4])
+                print "    Minions' damage: %f" % action_list[j][4]
+            else:
+                if action_list[j][2] > 0:
+                    print "    Damage: %f" % action_list[j][2]
+            if not player_turn_only:
+                if len(action_list[j]) > 3 and action_list[j][3] > 0:
+                    print "    Damage on enemy turn: %f" % action_list[j][3]
+            print
+            j = j + 1
+        i = j
+        
+        toshizou_dmg_enemy_turn = 0
+        
+def log_total_dmg_enemy_turn(action_list):
+    dmg = 0
+    for action in action_list:
+        if len(action) > 3:
+            dmg += action[3]
+    print "Total damage on enemy turns: %f" % dmg

@@ -7,9 +7,16 @@ from enchantments import *
 from supports import link_support
 from enemies import get_generator
 
+'''
+    0 = all non-crit/min damage
+    1 = all crit/max damage
+    2 = expected value/average damage
+'''
+DAMAGE_MODE = 2
+
 enemy_generator = get_generator('normal')
 enemy_generator.default_def = 100
-enemy_generator.is_silenced = True
+enemy_generator.is_silenced = False
 enemy_generator.num_new_mobs_per_turn = 2
 best_action_list = []
 best_skill_set = None
@@ -24,7 +31,7 @@ def recur_toshizou(turn_num, ally_status, enemies_status, skill_list, action_lis
         if sum_dmg(action_list) > sum_dmg(best_action_list):
             best_action_list = copy.deepcopy(action_list)
             best_skill_set = skill_list
-            print get_crit_rate(ally_status, enemies_status['boss'])
+            print "Crit rate: %f" % get_crit_rate(ally_status, enemies_status['boss'])
         return 0
                 
     total_dmg = 0
@@ -48,10 +55,12 @@ def recur_toshizou(turn_num, ally_status, enemies_status, skill_list, action_lis
         if turn_num == 1:
            use_support_skill(new_ally_status, target_status, turn_num)
            
+        # From MC
         add_buff(new_ally_status, 'mag_buffs', [0.1, 99, 'attack blessing'])
         add_buff(new_ally_status, 'battle_dmg_dealt_buffs', [0.2, 99, 'blessing of nadia'])
-        add_buff(new_ally_status, 'crit_rate_buffs', [0.1, 99, 'azur sword'])
-        add_buff(new_ally_status, 'crit_dmg_buffs', [0.1, 99, 'azur sword'])
+        # From rider
+        add_buff_including_minions(new_ally_status, 'crit_rate_buffs', [0.1, 99, 'azur sword'])
+        add_buff_including_minions(new_ally_status, 'crit_dmg_buffs', [0.1, 99, 'azur sword'])
         
         #add_buff(new_ally_status, 'atk_buffs', [0.3, 99, 'Support/A'])
         
@@ -77,8 +86,8 @@ def recur_toshizou(turn_num, ally_status, enemies_status, skill_list, action_lis
                 add_buff(target_status, 'atk_buffs', [-0.1, 1, 'grim face'], turn_num)
                 add_buff(target_status, 'def_buffs', [-0.1, 1, 'grim face'], turn_num)
             elif _skill['id'] == 3:
-                add_buff(new_ally_status, 'dmg_dealt_buffs', [0.12, 99, 'mental support'])
-                add_buff(new_ally_status, 'dmg_res_buffs', [-0.12, 99, 'mental support'])
+                add_buff_including_minions(new_ally_status, 'dmg_dealt_buffs', [0.12, 99, 'mental support'])
+                add_buff_including_minions(new_ally_status, 'dmg_res_buffs', [-0.12, 99, 'mental support'])
             elif _skill['id'] == 4:
                 add_buff(new_ally_status, 'battle_atk_buffs', [0.15, 99, 'overflow'])
                 add_buff(new_ally_status, 'tec_buffs', [0.15, 99, 'overflow'])
@@ -94,8 +103,26 @@ def recur_toshizou(turn_num, ally_status, enemies_status, skill_list, action_lis
             pass
         else:
             if skill['id'] == 1:
-                if talent_stack_cnt >= 3:
-                    pass
+                if talent_stack_cnt < 3:
+                    minion_status = {
+                        'name': 'shinsengumi soldier',
+                        'class': 'soldier',
+                        'atk': 818,
+                        'tec': 400,
+                    }
+                else:
+                    minion_status = {
+                        'name': 'mysterious shinsengumi soldier',
+                        'class': 'soldier',
+                        'atk': 1198,
+                        'tec': 404,
+                    }
+                minion_status["summon_turn"] = turn_num
+                add_buff(minion_status, 'battle_atk_buffs', [0.15, 99, 'overflow'])
+                add_buff(minion_status, 'tec_buffs', [0.15, 99, 'overflow'])
+                add_buff(minion_status, 'def_buffs', [-0.1, 99, 'overflow'])
+                add_buff(minion_status, 'res_buffs', [-0.1, 99, 'overflow'])
+                summon(new_ally_status, minion_status)
             
         new_skill_list = copy.deepcopy(skill_list)
         _skill = skill if skill is None else copy.deepcopy(skill)
@@ -121,13 +148,36 @@ def recur_toshizou(turn_num, ally_status, enemies_status, skill_list, action_lis
         
         if kill_mob:
             new_enemies_status['mobs'].pop()
+            
+        dmg_enemy_turn = 0
+        minions_dmg = 0
+        # Last sub-turn
         if not act_again:
-            dmg_enemy_turn = 0
-            #dmg_enemy_turn = calc_damage(new_ally_status, new_enemies_status['boss'], {'type': 'magic', on_enemy_turn=True}, None)[2]
+            if "minions" in new_ally_status:
+                for minion_status in new_ally_status["minions"]:
+                    minion_skill = None
+                    if minion_status["name"].startswith("mysterious"):
+                        if (turn_num - minion_status["summon_turn"]) % 2 == 0:
+                            minion_skill = {'type': 'active', 'ct': 1, 'dmg_modifier': 1.4}
+                            add_buff(minion_status, 'crit_rate_buffs', [0.2, -1, 'Main/A'], turn_num)
+                    else:
+                        if (turn_num - minion_status["summon_turn"]) % 2 == 0:
+                            minion_skill = {'type': 'active', 'ct': 1, 'dmg_modifier': 1.4}
+                            add_buff(minion_status, 'crit_rate_buffs', [0.2, -1, 'Main/A'], turn_num)
+                        elif (turn_num - minion_status["summon_turn"]) == 1:
+                            minion_skill = {'type': 'active', 'ct': 3, 'dmg_modifier': 1.3}
+                            add_buff(target_status, 'dmg_res_buffs', [-0.1, -1, 'Main/A'], turn_num)
+                    minion_dmg = calc_damage(minion_status, target_status, {'type': 'attack'}, minion_skill, use_base_stat=True)[dmg_type]
+                    minions_dmg += minion_dmg
+                action_list[-1][2] += minions_dmg
+                dmg += minions_dmg
+                    
+            #dmg_enemy_turn = calc_damage(new_ally_status, new_enemies_status['boss'], {'type': 'magic', on_enemy_turn=True}, None)[dmg_type]
             for mob in new_enemies_status['mobs']:
-                dmg_enemy_turn += calc_damage(new_ally_status, mob, {'type': 'attack'}, None, dmg_penalty=True, on_enemy_turn=True)[2]
+                dmg_enemy_turn += calc_damage(new_ally_status, mob, {'type': 'attack'}, None, dmg_penalty=True, on_enemy_turn=True)[dmg_type]
             new_enemies_status['mobs'][:] = []
-            action_list[-1].append(dmg_enemy_turn)
+        action_list[-1].append(dmg_enemy_turn)
+        action_list[-1].append(minions_dmg)
         
         new_sub_turn = 0 if not act_again else sub_turn + 1
         new_ally_status = update_duration(new_ally_status, new_sub_turn)
@@ -151,9 +201,9 @@ toshizou_skills = [
                     {'id': 4, 'type': 'passive'},
                     {'id': 5, 'type': 'passive', 'ct': 3},
                  ]
-toshizou_skill_sets = get_all_skill_sets(toshizou_skills, must_include_skill_ids=[3, 5])
+toshizou_skill_sets = get_all_skill_sets(toshizou_skills, must_include_skill_ids=[3])
 
-toshizou_status = load_equipments(['john dillinger', "leo's heavenly armor", 'tracking headband', 'nadia amulet'], toshizou_status)
+toshizou_status = load_equipments(['john dillinger', "leo's heavenly armor", 'tracking headband', 'ring of life'], toshizou_status)
 toshizou_status = load_enchantments(['strike'], toshizou_status)
 toshizou_status = load_enchantment_random_stats('max_atk_percent', toshizou_status)
 toshizou_status = link_support('nuwa_yukata', toshizou_status)
@@ -171,12 +221,7 @@ for skill_set in toshizou_skill_sets:
             },
             skill_set,
             [],
-            2))
-print toshizou_dmg
-print [skill['id'] for skill in best_skill_set if 'id' in skill]
-print best_action_list
-toshizou_dmg_enemy_turn = 0
-for action in best_action_list:
-    if len(action) > 3:
-        toshizou_dmg_enemy_turn += action[3]
-print toshizou_dmg_enemy_turn
+            DAMAGE_MODE))
+print "Total damage (player phase): %f" % toshizou_dmg
+log_skill_set(best_skill_set)
+log_action_list(best_action_list)

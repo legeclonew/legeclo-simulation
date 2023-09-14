@@ -7,9 +7,16 @@ from enchantments import *
 from supports import link_support
 from enemies import get_generator
 
-enemy_generator = get_generator('gex3')
+'''
+    0 = all non-crit/min damage
+    1 = all crit/max damage
+    2 = expected value/average damage
+'''
+DAMAGE_MODE = 2
+
+enemy_generator = get_generator('normal')
 enemy_generator.default_def = 100
-enemy_generator.is_silenced = True
+enemy_generator.is_silenced = False
 enemy_generator.num_new_mobs_per_turn = 2
 best_action_list = []
 best_skill_set = None
@@ -28,7 +35,7 @@ def recur_saffie(turn_num, ally_status, enemies_status, skill_list, action_list,
         if sum_dmg(action_list) > sum_dmg(best_action_list):
             best_action_list = copy.deepcopy(action_list)
             best_skill_set = skill_list
-            #print get_crit_rate(ally_status, enemies_status['boss'])
+            print "Crit rate: %f" % get_crit_rate(ally_status, enemies_status['boss'])
         return 0
                 
     total_dmg = 0
@@ -53,8 +60,10 @@ def recur_saffie(turn_num, ally_status, enemies_status, skill_list, action_list,
         if turn_num == 1:
            use_support_skill(new_ally_status, target_status, turn_num)
            
+        # From MC
         add_buff(new_ally_status, 'mag_buffs', [0.1, 99, 'attack blessing'])
         add_buff(new_ally_status, 'battle_dmg_dealt_buffs', [0.2, 99, 'blessing of nadia'])
+        # From rider
         add_buff(new_ally_status, 'crit_rate_buffs', [0.1, 99, 'azur sword'])
         add_buff(new_ally_status, 'crit_dmg_buffs', [0.1, 99, 'azur sword'])
         
@@ -109,9 +118,9 @@ def recur_saffie(turn_num, ally_status, enemies_status, skill_list, action_list,
             new_enemies_status['mobs'].pop()
         if not act_again:
             dmg_enemy_turn = 0
-            #dmg_enemy_turn = calc_damage(new_ally_status, new_enemies_status['boss'], {'type': 'attack', on_enemy_turn=True}, None)[2]
+            #dmg_enemy_turn = calc_damage(new_ally_status, new_enemies_status['boss'], {'type': 'attack', on_enemy_turn=True}, None)[dmg_type]
             for mob in new_enemies_status['mobs']:
-                dmg_enemy_turn += calc_damage(new_ally_status, mob, {'type': 'magic'}, None, on_enemy_turn=True)[2]
+                dmg_enemy_turn += calc_damage(new_ally_status, mob, {'type': 'magic'}, None, on_enemy_turn=True)[dmg_type]
             new_enemies_status['mobs'][:] = []
             action_list[-1].append(dmg_enemy_turn)
         
@@ -159,12 +168,7 @@ for skill_set in saffie_skill_sets:
             },
             skill_set,
             [],
-            2))
-print saffie_dmg
-print [skill['id'] for skill in best_skill_set if 'id' in skill]
-print best_action_list
-saffie_dmg_enemy_turn = 0
-for action in best_action_list:
-    if len(action) > 3:
-        saffie_dmg_enemy_turn += action[3]
-print saffie_dmg_enemy_turn
+            DAMAGE_MODE))
+print "Total damage (player phase): %f" % saffie_dmg
+log_skill_set(best_skill_set)
+log_action_list(best_action_list)
