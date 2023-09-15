@@ -42,6 +42,15 @@ def recur_itutan(turn_num, ally_status, enemies_status, skill_list, action_list,
         
         if turn_num == 2:
            use_support_skill(new_ally_status, target_status)
+           
+        # Team buffs
+        if sub_turn == 0:
+            # From MC
+            add_buff(new_ally_status, 'mag_buffs', [0.1, 99, 'attack blessing'])
+            add_buff(new_ally_status, 'battle_dmg_dealt_buffs', [0.15, 4, 'blessing of nadia'], 0)
+            # From rider
+            add_buff_including_minions(new_ally_status, 'crit_rate_buffs', [0.1, 2, 'azur sword'], 0)
+            add_buff_including_minions(new_ally_status, 'crit_dmg_buffs', [0.1, 2, 'azur sword'], 0)
         
         add_buff(new_ally_status, 'skill_dmg_dealt_buffs', [0.25, 99, 'tutankhamun_half/T'])
         if skill == None:
@@ -100,7 +109,7 @@ def recur_itutan(turn_num, ally_status, enemies_status, skill_list, action_list,
             action_list[-1].append(dmg_enemy_turn)
         
         new_sub_turn = 0 if not act_again else sub_turn + 1
-        new_ally_status = update_duration(new_ally_status, new_sub_turn)
+        new_ally_status = update_duration(new_ally_status, turn_num)
         total_dmg = max(total_dmg, dmg + recur_itutan(turn_num + int(not act_again), new_ally_status, new_enemies_status, new_skill_list, action_list, dmg_type, new_sub_turn))
         
         action_list.pop()

@@ -38,6 +38,8 @@ def recur_toshizou(turn_num, ally_status, enemies_status, skill_list, action_lis
     
     skill_list = reduce_cooldown(skill_list, sub_turn)
     avail_skills = find_avail_skills(skill_list)
+    # if (turn_num == 1) and sub_turn == 1:
+        # avail_skills = [None]
     
     for skill in avail_skills:
         act_again = False
@@ -46,6 +48,7 @@ def recur_toshizou(turn_num, ally_status, enemies_status, skill_list, action_lis
         target_status = new_enemies_status['boss']
         kill_mob = len(new_enemies_status['mobs']) > 0
         kill_mob = kill_mob and ((turn_num == 1 and sub_turn == 0) or (turn_num == 4 and sub_turn == 0))
+        #kill_mob = kill_mob and ((turn_num == 1 and sub_turn == 1) or (turn_num == 4 and sub_turn == 0))
         #kill_mob = False
         if kill_mob:
             target_status = new_enemies_status['mobs'][-1]
@@ -55,14 +58,16 @@ def recur_toshizou(turn_num, ally_status, enemies_status, skill_list, action_lis
         if turn_num == 1:
            use_support_skill(new_ally_status, target_status, turn_num)
            
-        # From MC
-        add_buff(new_ally_status, 'mag_buffs', [0.1, 99, 'attack blessing'])
-        add_buff(new_ally_status, 'battle_dmg_dealt_buffs', [0.2, 99, 'blessing of nadia'])
-        # From rider
-        add_buff_including_minions(new_ally_status, 'crit_rate_buffs', [0.1, 99, 'azur sword'])
-        add_buff_including_minions(new_ally_status, 'crit_dmg_buffs', [0.1, 99, 'azur sword'])
+        # Team buffs
+        if sub_turn == 0:
+            # From MC
+            add_buff(new_ally_status, 'atk_buffs', [0.1, 99, 'attack blessing'])
+            add_buff(new_ally_status, 'battle_dmg_dealt_buffs', [0.15, 4, 'blessing of nadia'], 0)
+            # From rider
+            add_buff_including_minions(new_ally_status, 'crit_rate_buffs', [0.1, 2, 'azur sword'], 0)
+            add_buff_including_minions(new_ally_status, 'crit_dmg_buffs', [0.1, 2, 'azur sword'], 0)
         
-        #add_buff(new_ally_status, 'atk_buffs', [0.3, 99, 'Support/A'])
+            #add_buff(new_ally_status, 'atk_buffs', [0.3, 99, 'Support/A'])
         
         
         talent_stack_cnt = min(sum_buffs(new_ally_status, 'pride of sincerity'), 3)
@@ -76,6 +81,13 @@ def recur_toshizou(turn_num, ally_status, enemies_status, skill_list, action_lis
             add_buff(target_status, 'atk_dmg_res_buffs', [-0.1, -1, 'toshizou/T'], turn_num)
         elif talent_stack_cnt == 3:
             add_buff(target_status, 'atk_dmg_res_buffs', [-0.15, -1, 'toshizou/T'], turn_num)
+            
+        # Sacrifice one minion
+        if turn_num == 5 and sub_turn == 0 and "minions" in new_ally_status:
+            new_ally_status["minions"].pop()
+            add_buff(new_ally_status, 'dmg_dealt_buffs', [0.25, 1, 'bushido'], turn_num)
+            add_buff(new_ally_status, 'dmg_res_buffs', [0.25, 1, 'bushido'], turn_num)
+            
         for _skill in skill_list:
             if _skill['id'] == 0:
                 add_buff(new_ally_status, 'atk_buffs', [0.1, 99, 'blade for victory'])
@@ -118,6 +130,10 @@ def recur_toshizou(turn_num, ally_status, enemies_status, skill_list, action_lis
                         'tec': 404,
                     }
                 minion_status["summon_turn"] = turn_num
+                add_buff(minion_status, 'dmg_dealt_buffs', [0.2, 99, 'bushido'])
+                add_buff(minion_status, 'mov_buffs', [2, 99, 'bushido'])
+                add_buff(minion_status, 'battle_atk_buffs', [0.2, 99, 'bushido'])
+                add_buff(minion_status, 'def_buffs', [0.2, 99, 'bushido'])
                 add_buff(minion_status, 'battle_atk_buffs', [0.15, 99, 'overflow'])
                 add_buff(minion_status, 'tec_buffs', [0.15, 99, 'overflow'])
                 add_buff(minion_status, 'def_buffs', [-0.1, 99, 'overflow'])
@@ -180,7 +196,7 @@ def recur_toshizou(turn_num, ally_status, enemies_status, skill_list, action_lis
         action_list[-1].append(minions_dmg)
         
         new_sub_turn = 0 if not act_again else sub_turn + 1
-        new_ally_status = update_duration(new_ally_status, new_sub_turn)
+        new_ally_status = update_duration(new_ally_status, turn_num)
         total_dmg = max(total_dmg, dmg + recur_toshizou(turn_num + int(not act_again), new_ally_status, new_enemies_status, new_skill_list, action_list, dmg_type, new_sub_turn))
         
         action_list.pop()

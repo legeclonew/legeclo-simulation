@@ -97,7 +97,7 @@ def recur_hanzou(turn_num, ally_status, enemies_status, skill_list, action_list,
             action_list[-1].append(dmg_enemy_turn)
         
         new_sub_turn = 0 if not act_again else sub_turn + 1
-        new_ally_status = update_duration(new_ally_status, new_sub_turn)
+        new_ally_status = update_duration(new_ally_status, turn_num)
         total_dmg = max(total_dmg, dmg + recur_hanzou(turn_num + int(not act_again), new_ally_status, new_enemies_status, new_skill_list, action_list, dmg_type, new_sub_turn))
         
         action_list.pop()
@@ -120,22 +120,6 @@ hanzou_skills = [
                     {'id': 5, 'type': 'active', 'ct': 5, 'dmg_modifier': 1.7},
                  ]
 hanzou_skill_sets = get_all_skill_sets(hanzou_skills, must_include_skill_ids=[])
-hanzou_dmg = 0
-for skill_set in hanzou_skill_sets:
-    hanzou_dmg = max(hanzou_dmg,
-        recur_hanzou(
-            1,
-            hanzou_status,
-            {
-                'boss': {
-                    #'dmg_res_buffs': [-0.35],
-                },
-                'mobs': [],
-            },
-            skill_set,
-            [],
-            2))
-print hanzou_dmg
 
 hanzou_status = load_equipments(['atomical fire', "assassin's vest", 'tracking headband', 'origin amulet'], hanzou_status)
 hanzou_status = load_enchantments(['strike'], hanzou_status)
@@ -149,18 +133,13 @@ for skill_set in hanzou_skill_sets:
             hanzou_status,
             {
                 'boss': {
-                    #'dmg_res_buffs': [-0.35],
+                    'dmg_res_buffs': [-0.35],
                 },
                 'mobs': [],
             },
             skill_set,
             [],
             2))
-print hanzou_dmg
-print [skill['id'] for skill in best_skill_set if 'id' in skill]
-print best_action_list
-hanzou_dmg_enemy_turn = 0
-for action in best_action_list:
-    if len(action) > 3:
-        hanzou_dmg_enemy_turn += action[3]
-print hanzou_dmg_enemy_turn
+print "Total damage (player phase): %f" % hanzou_dmg
+log_skill_set(best_skill_set)
+log_action_list(best_action_list)

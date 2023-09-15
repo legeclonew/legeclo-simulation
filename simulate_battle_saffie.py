@@ -60,12 +60,16 @@ def recur_saffie(turn_num, ally_status, enemies_status, skill_list, action_list,
         if turn_num == 1:
            use_support_skill(new_ally_status, target_status, turn_num)
            
-        # From MC
-        add_buff(new_ally_status, 'mag_buffs', [0.1, 99, 'attack blessing'])
-        add_buff(new_ally_status, 'battle_dmg_dealt_buffs', [0.2, 99, 'blessing of nadia'])
-        # From rider
-        add_buff(new_ally_status, 'crit_rate_buffs', [0.1, 99, 'azur sword'])
-        add_buff(new_ally_status, 'crit_dmg_buffs', [0.1, 99, 'azur sword'])
+        # Team buffs
+        if sub_turn == 0:
+            # From MC
+            add_buff(new_ally_status, 'mag_buffs', [0.1, 99, 'attack blessing'])
+            add_buff(new_ally_status, 'battle_dmg_dealt_buffs', [0.15, 4, 'blessing of nadia'], 0)
+            # From rider
+            add_buff_including_minions(new_ally_status, 'crit_rate_buffs', [0.1, 2, 'azur sword'], 0)
+            add_buff_including_minions(new_ally_status, 'crit_dmg_buffs', [0.1, 2, 'azur sword'], 0)
+        
+            #add_buff(new_ally_status, 'atk_buffs', [0.3, 99, 'Support/A'])
         
         for _skill in skill_list:
             if 'id' in _skill:
