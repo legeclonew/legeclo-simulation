@@ -219,7 +219,7 @@ toshizou_skills = [
                  ]
 toshizou_skill_sets = get_all_skill_sets(toshizou_skills, must_include_skill_ids=[3])
 
-toshizou_status = load_equipments(['john dillinger', "leo's heavenly armor", 'tracking headband', 'ring of life'], toshizou_status)
+toshizou_status = load_equipments(['john dillinger', "leo's heavenly armor", 'tracking headband', "rakshasa's earrings"], toshizou_status)
 toshizou_status = load_enchantments(['strike'], toshizou_status)
 toshizou_status = load_enchantment_random_stats('max_atk_percent', toshizou_status)
 toshizou_status = link_support('nuwa_yukata', toshizou_status)
