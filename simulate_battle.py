@@ -2,6 +2,7 @@ import itertools
 import copy
 from utils import deep_merge
 import math
+from teamwise_buffs import add_teamwise_buffs
 
 ally_base_status = {
     'atk': 877,
@@ -111,6 +112,14 @@ def get_full_buff(buff): # [buff value, duration, frame, condition, buff turn]
     if len(buff) < 5:
         buff.append(0)
     return buff
+    
+def update_start_of_turn(status, turn_num):
+    if 'delayed_buffs_turn' not in status:
+        return
+    for trigger_turns in status['delayed_buffs_turn']:
+        for trigger_turn in trigger_turns:
+            if turn_num == trigger_turn:
+                status = deep_merge(status, status['delayed_buffs_turn'][trigger_turns])
     
 def update_duration(status, turn_num):
     new_status = {}
@@ -239,27 +248,6 @@ def activate_master_class_effect(ally_status, enemy_status, skill_list):
         add_buff(ally_status, 'double_normal_atk_rate', [0.1 + 0.3 * mc_lv, 99, 'mc'])
     else:
         raise Exception('Class %s not supported')
-        
-def add_teamwise_buffs(buff_names, status):
-    if status is None:
-        status = {}
-    new_status = copy.deepcopy(status)
-    for buff_name in buff_names:
-        if buff_name == 'symbol skill':
-            add_buff(new_status, 'atk_buffs', [0.2, 99, 'Main/A'])
-            add_buff(new_status, 'mag_buffs', [0.2, 99, 'Main/A'])
-            add_buff(new_status, 'def_buffs', [0.2, 99, 'Main/A'])
-            add_buff(new_status, 'res_buffs', [0.3, 99, 'Main/A'])
-            add_buff(new_status, 'dmg_dealt_buffs', [0.12, 99, 'Guild'])
-        elif buff_name == 'cleared quest effect':
-            add_buff(new_status, 'atk_buffs', 0.3)
-            add_buff(new_status, 'mag_buffs', 0.3)
-            add_buff(new_status, 'tec_buffs', 0.3)
-            add_buff(new_status, 'def_buffs', 0.3)
-            add_buff(new_status, 'res_buffs', 0.3)
-        else:
-            raise Exception('Buff name %s not found' % buff_name)
-    return new_status
     
 def apply_random_buff(ally_status, turn_num):
     if 'weak_buff_success_rate' in ally_status:

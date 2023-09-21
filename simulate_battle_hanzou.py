@@ -26,6 +26,8 @@ def recur_hanzou(turn_num, ally_status, enemies_status, skill_list, action_list,
                 
     total_dmg = 0
     
+    if sub_turn == 0:
+        update_start_of_turn(ally_status, turn_num)
     skill_list = reduce_cooldown(skill_list, sub_turn)
     avail_skills = find_avail_skills(skill_list)
     for skill in avail_skills:

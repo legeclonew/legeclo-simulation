@@ -40,6 +40,8 @@ def recur_saffie(turn_num, ally_status, enemies_status, skill_list, action_list,
                 
     total_dmg = 0
     
+    if sub_turn == 0:
+        update_start_of_turn(ally_status, turn_num)
     skill_list = reduce_cooldown(skill_list, sub_turn)
     avail_skills = find_avail_skills_and_use(skill_list)
     # if (turn_num == 1) and sub_turn == 0:
@@ -59,17 +61,6 @@ def recur_saffie(turn_num, ally_status, enemies_status, skill_list, action_list,
         
         if turn_num == 1:
            use_support_skill(new_ally_status, target_status, turn_num)
-           
-        # Team buffs
-        if sub_turn == 0:
-            # From MC
-            add_buff(new_ally_status, 'mag_buffs', [0.1, 99, 'attack blessing'])
-            add_buff(new_ally_status, 'battle_dmg_dealt_buffs', [0.15, 4, 'blessing of nadia'], 0)
-            # From rider
-            add_buff_including_minions(new_ally_status, 'crit_rate_buffs', [0.1, 2, 'azur sword'], 0)
-            add_buff_including_minions(new_ally_status, 'crit_dmg_buffs', [0.1, 2, 'azur sword'], 0)
-        
-            #add_buff(new_ally_status, 'atk_buffs', [0.3, 99, 'Support/A'])
         
         for _skill in skill_list:
             if 'id' in _skill:
@@ -143,7 +134,7 @@ saffie_stats = {
                     'res': 242,
                 }
 saffie_status = saffie_stats
-saffie_status = add_teamwise_buffs(['symbol skill'], saffie_stats)
+saffie_status = add_teamwise_buffs(['mc', 'azur sword'], saffie_stats)
 saffie_skills = [
                     {'id': 0, 'type': 'active', 'ct': 1, 'dmg_modifier': 1.8},
                     {'id': 1, 'type': 'passive'},

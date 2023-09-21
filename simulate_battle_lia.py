@@ -29,6 +29,8 @@ def recur_lia(turn_num, ally_status, enemies_status, skill_list, action_list, dm
                 
     total_dmg = 0
     
+    if sub_turn == 0:
+        update_start_of_turn(ally_status, turn_num)
     skill_list = reduce_cooldown(skill_list, sub_turn)
     avail_skills = find_avail_skills(skill_list)
     if (turn_num % 2 == 1) and sub_turn == 0:
