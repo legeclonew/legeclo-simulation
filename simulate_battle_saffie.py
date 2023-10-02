@@ -15,7 +15,7 @@ from enemies import get_generator
 DAMAGE_MODE = 2
 
 enemy_generator = get_generator('normal')
-enemy_generator.default_def = 100
+enemy_generator.default_res = 100
 enemy_generator.is_silenced = False
 enemy_generator.num_new_mobs_per_turn = 2
 best_action_list = []
@@ -134,7 +134,7 @@ saffie_stats = {
                     'res': 242,
                 }
 saffie_status = saffie_stats
-saffie_status = add_teamwise_buffs(['mc', 'azur sword'], saffie_stats)
+saffie_status = add_teamwise_buffs(['mc', 'azur sword'], saffie_status)
 saffie_skills = [
                     {'id': 0, 'type': 'active', 'ct': 1, 'dmg_modifier': 1.8},
                     {'id': 1, 'type': 'passive'},
