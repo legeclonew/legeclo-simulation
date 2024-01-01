@@ -58,7 +58,12 @@ enchantments = {
             'enchant_mag_percent_n_2set': [0.05],
         },
         4: {
-            'cd_reduction_rate': [0.5],
+            #'cd_reduction_rate': [0.5],
+            'delayed_buffs_turn': {
+                (1, 3, 5): {
+                    'special_effects': ['reduce_cd', 'skill']
+                },
+            }
         }
     },
     'strike': {

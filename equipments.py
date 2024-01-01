@@ -157,6 +157,15 @@ equipments = {
             'atk_buffs': [0.1], 
             'battle_crit_rate_buffs': [0.2],
         },
+        'vase of unwanted encounters': {
+            'equip_mag': [141],
+            'mag_buffs': [0.1],
+            'after_dmg': {
+                'ally': {
+                    'weak_debuff_success_rate': [[1, 2, 'VOUE']],
+                }
+            }
+        },
         'yata no kagami': {
             'equip_mag': [141],
             'mag_buffs': [0.1],
@@ -185,6 +194,15 @@ equipments = {
             'equip_def': [75],
             'res_buffs': [0.1],
             'fixed_dmg_battle_res': [3],
+        },
+        "golden conscious": {
+            'equip_def': [67],
+            'atk_dmg_dealt_buffs': [0.1],
+            'after_defeat': {
+                'ally': {
+                    'atk_buffs': [[0.12, 2, 'golden conscious']],
+                }
+            }
         },
         "leo's heavenly armor": {
             'equip_def': [67],
@@ -293,6 +311,11 @@ equipments = {
             'equip_mag': [86],
             'equip_res': [56],
             'mag_buffs': [0.08],
+        },
+        'mystic barrette': {
+            'equip_atk': [100],
+            'atk_buffs': [[0.12, 99, 'mystic barrette', 'no ally within 1 sq']],
+            'dmg_dealt_buffs': [[0.12, 99, 'mystic barrette', 'no ally within 1 sq']],
         },
         'nadia amulet': {
             'equip_atk': [100],

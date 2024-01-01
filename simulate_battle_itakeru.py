@@ -7,6 +7,13 @@ from enchantments import *
 from supports import link_support
 from enemies import get_generator
 
+'''
+    0 = all non-crit/min damage
+    1 = all crit/max damage
+    2 = expected value/average damage
+'''
+DAMAGE_MODE = 2
+
 enemy_generator = get_generator('gex3')
 enemy_generator.default_res = 100
 enemy_generator.is_silenced = True
@@ -144,8 +151,7 @@ itakeru_stats = {
                     'tec': 126,
                     'res': 254,
                 }
-itakeru_status = add_teamwise_buffs(['symbol skill'], itakeru_stats)
-#print json.dumps(itakeru_status, indent=2)
+itakeru_status = add_teamwise_buffs(['xarthur', 'azur sword'], itakeru_stats)
 itakeru_skills = [
                     {'id': 0, 'type': 'active', 'ct': 1, 'dmg_modifier': 1.5},
                     {'id': 1, 'type': 'passive', 'ct': 2},
@@ -154,28 +160,12 @@ itakeru_skills = [
                     {'id': 4, 'type': 'active', 'ct': 2, 'dmg_modifier': 1.5},
                     {'id': 5, 'type': 'active', 'ct': 5, 'dmg_modifier': 1.6},
                  ]
-itakeru_skill_sets = get_all_skill_sets(itakeru_skills, must_include_skill_ids=[1])
-itakeru_dmg = 0
-for skill_set in itakeru_skill_sets:
-    itakeru_dmg = max(itakeru_dmg,
-        recur_itakeru(
-            1,
-            itakeru_status,
-            {
-                'boss': {
-                    'dmg_res_buffs': [-0.35],
-                },
-                'mobs': [],
-            },
-            skill_set,
-            [],
-            2))
-print itakeru_dmg
+itakeru_skill_sets = get_all_skill_sets(itakeru_skills, must_include_skill_ids=[1, 5])
 
-itakeru_status = load_equipments(['yata no kagami', 'everlasting darkness ceremonial dress', 'elemental hat', 'origin amulet'], itakeru_status)
-itakeru_status = load_enchantments(['break'], itakeru_status)
+itakeru_status = load_equipments(['yata no kagami', 'everlasting darkness ceremonial dress', "leo's heavenly crown", 'ring of life'], itakeru_status)
+itakeru_status = load_enchantments(['strike'], itakeru_status)
 itakeru_status = load_enchantment_random_stats('max_mag_percent', itakeru_status)
-itakeru_status = link_support('nyarlathotep', itakeru_status)
+itakeru_status = link_support('sol', itakeru_status)
 itakeru_dmg = 0
 for skill_set in itakeru_skill_sets:
     itakeru_dmg = max(itakeru_dmg,
@@ -190,15 +180,10 @@ for skill_set in itakeru_skill_sets:
             },
             skill_set,
             [],
-            2))
-print itakeru_dmg
-print [skill['id'] for skill in best_skill_set if 'id' in skill]
-print best_action_list
-itakeru_dmg_enemy_turn = 0
-for action in best_action_list:
-    if len(action) > 3:
-        itakeru_dmg_enemy_turn += action[3]
-print itakeru_dmg_enemy_turn
+            DAMAGE_MODE))
+print "Total damage (player phase): %f" % itakeru_dmg
+log_skill_set(best_skill_set)
+log_action_list(best_action_list)
 
 # print recur_itakeru(
             # 1,

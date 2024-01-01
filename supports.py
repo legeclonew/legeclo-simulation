@@ -2,6 +2,20 @@ import copy
 from utils import deep_merge
 
 supports = {
+    'amaterasu_newyear': {
+        'class': 'rider',
+        'passive': {
+            'skill_dmg_dealt_buffs': [0.05, 0.15],
+            'battle_atk_buffs': [0.15],
+        },
+        'active': {
+            'ally': {
+                'atk_buffs': [[0.25, 2, 'Support/A']],
+                'def_buffs': [[0.25, 2, 'Support/A']],
+                'mov_buffs': [[1, 2, 'Support/A']],
+            }
+        }
+    },
     'apollo': {
         'class': 'soldier',
         'passive': {

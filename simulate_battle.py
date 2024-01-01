@@ -333,6 +333,12 @@ def activate_after_attack_effects(ally_status, enemy_status, skill_list, skill_d
                 deep_merge(ally_status, ally_status['after_battle']['ally'])
             if 'enemy' in ally_status['after_battle']:
                 deep_merge(enemy_status, ally_status['after_battle']['enemy'])
+    if kill_enemy:
+        if 'after_defeat' in ally_status:
+            if 'ally' in ally_status['after_defeat']:
+                deep_merge(ally_status, ally_status['after_defeat']['ally'])
+            if 'enemy' in ally_status['after_defeat']:
+                deep_merge(enemy_status, ally_status['after_defeat']['enemy'])
                 
     apply_random_buff(ally_status, turn_num)
     apply_random_debuff(ally_status, enemy_status, turn_num)
@@ -342,9 +348,13 @@ def activate_after_attack_effects(ally_status, enemy_status, skill_list, skill_d
     if 'special_effects' in ally_status:
         for effect in ally_status['special_effects']:
             if effect[0] == 'reduce_cd_all':
-                if turn_num >= 2:
+                #if turn_num >= 2:
+                if True:
                     if kill_enemy:
                         reduce_cooldown(skill_list, True, inplace=True)
+            elif effect[0] == 'reduce_cd':
+                if skill_detail != None:
+                    reduce_skill_cooldown(skill_list, skill_detail['id'])
         ally_status.pop('special_effects')
         
 def activate_after_action_effects(ally_status, enemy_status, skill_list, skill_detail, turn_num, kill_enemy=False):
